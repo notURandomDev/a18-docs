@@ -35,5 +35,5 @@ jobs:
         run: |
           pip install coscmd
           coscmd config -a $COS_SECRET_ID -s $COS_SECRET_KEY -b $COS_BUCKET -r $COS_REGION
-          coscmd delete -r /  # 清空存储桶（可选，谨慎使用）
+          coscmd upload -rs --delete
           coscmd upload -rs --headers '{"*.html":"text/html","*.css":"text/css","*.js":"application/javascript","*.png":"image/png","*.jpg":"image/jpeg"}' ./build/ /

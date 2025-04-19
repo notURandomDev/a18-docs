@@ -1,0 +1,39 @@
+name: Deploy Docusaurus to Tencent COS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出代码
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 设置 Node.js 环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20" # 推荐 Node.js 20，兼容 Docusaurus
+
+      # 安装依赖并构建
+      - name: Install Dependencies and Build
+        run: |
+          npm ci
+          npm run build
+
+      # 安装 coscmd 并上传到 COS
+      - name: Deploy to Tencent COS
+        env:
+          COS_SECRET_ID: ${{ secrets.COS_SECRET_ID }}
+          COS_SECRET_KEY: ${{ secrets.COS_SECRET_KEY }}
+          COS_BUCKET: a18-doc-1340028816
+          COS_REGION: ap-shanghai
+        run: |
+          pip install coscmd
+          coscmd config -a $COS_SECRET_ID -s $COS_SECRET_KEY -b $COS_BUCKET -r $COS_REGION
+          coscmd delete -r /  # 清空存储桶（可选，谨慎使用）
+          coscmd upload -rs --headers '{"*.html":"text/html","*.css":"text/css","*.js":"application/javascript","*.png":"image/png","*.jpg":"image/jpeg"}' ./build/ /
